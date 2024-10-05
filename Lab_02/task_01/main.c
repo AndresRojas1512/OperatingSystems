@@ -15,7 +15,6 @@ int main(void)
         childpid[i] = fork();
         if (childpid[i] == -1)
         {
-            perror("Cant't fork.\n");
             return ERROR_CANT_FORK;
         }
         else if (childpid[i] == 0)

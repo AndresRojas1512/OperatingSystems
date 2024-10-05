@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #define MAX_SIZE 10
 #define MIN_SIZE 1
 #define NUMBER_OF_ARGUMENTS 1
@@ -14,17 +16,17 @@ void print_formed_array(int *formed_array, size_t formed_array_size);
 
 int main(void)
 {
-    printf("APP2.EXE.\n");
+    // printf("APP2.EXE.\n");
     int array[MAX_SIZE];
     int formed_array[MAX_SIZE];
     size_t array_size;
     size_t formed_array_size;
     int exit_code = EXIT_SUCCESS;
 
-    printf("(APP2.EXE)Enter the number of elements: ");
+    printf("(%d)Enter the number of elements: ", getpid());
     if (scanf("%zu", &array_size) != NUMBER_OF_ARGUMENTS || array_size > MAX_SIZE || array_size < MIN_SIZE)
     {
-        printf("(APP2.EXE)Error, invalid input for the size of the array\n");
+        printf("(%d)Error, invalid input for the size of the array\n", getpid());
         exit_code = EXIT_FAILURE;
     }
     else
@@ -35,14 +37,14 @@ int main(void)
         }
         else
         {
-            printf("(APP2.EXE)Inputted array size: %ld.\n", array_size);
+            printf("(%d)Inputted array size: %ld.\n", getpid(), array_size);
             if (copy_same_digit_elements(array, formed_array, array_size, &formed_array_size) == EXIT_FAILURE)
             {
                 exit_code = EXIT_FAILURE;
             }
             else
             {
-                printf("(APP2.EXE)The formed array is: ");
+                printf("(%d)The formed array is: ", getpid());
                 print_formed_array(formed_array, formed_array_size);           
             }
         }
@@ -56,18 +58,18 @@ int input_array(int *array, size_t array_size)
 {
     int exit_code_input_array = EXIT_SUCCESS;
 
-    printf("(APP2.EXE)Enter the elements: ");
+    printf("(%d)Enter the elements: ", getpid());
     for (size_t i = 0; i < array_size && exit_code_input_array == EXIT_SUCCESS; i++)
     {
-        printf("(APP2.EXE)Input the %ld element: ", i);
+        printf("(%d)Input the %ld element: ", getpid(), i);
         if (scanf("%d", (array + i)) != NUMBER_OF_ARGUMENTS)
         {
-            printf("(APP2.EXE)Error: incorrect input array\n");
+            printf("(%d)Error: incorrect input array\n", getpid());
             exit_code_input_array = EXIT_FAILURE;
         }
         else
         {
-            printf("(APP2.EXE)Inputted %ld element: %d.\n", i, *(array + i));
+            printf("(%d)Inputted %ld element: %d.\n", getpid(), i, *(array + i));
         }
     }
     

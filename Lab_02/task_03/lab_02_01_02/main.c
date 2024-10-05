@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #define MAX_SIZE 10
 #define MIN_SIZE 1
 #define NUMBER_OF_ARGUMENTS 1
@@ -10,16 +12,16 @@ int average_negative_numbers(int *array, size_t array_size, double *average);
 
 int main()
 {
-    printf("APP1.EXE.\n");
+    // printf("APP1.EXE.\n");
     int array[MAX_SIZE];
     double average = 0.0;
     size_t array_size;
     int exit_code = EXIT_SUCCESS;
     
-    printf("(APP1.EXE)Enter the number of elements: ");
+    printf("(%d)Enter the number of elements: ", getpid());
     if (scanf("%zu", &array_size) != NUMBER_OF_ARGUMENTS || array_size > MAX_SIZE || array_size < MIN_SIZE)
     {
-        printf("(APP1.EXE)Error, invalid input for the size of the array\n");
+        printf("(%d)Error, invalid input for the size of the array\n", getpid());
         exit_code = EXIT_FAILURE;
     }
     else
@@ -30,16 +32,16 @@ int main()
         }
         else
         {
-            printf("(APP1.EXE)Inputted array size: %ld.\n", array_size);
+            printf("(%d)Inputted array size: %ld.\n", getpid(), array_size);
             exit_code = average_negative_numbers(array, array_size, &average);
             if (exit_code == EXIT_SUCCESS)
             {
-                printf("(APP1.EXE)Average: ");
-                printf("%f\n", average);
+                printf("(%d)Average: ", getpid());
+                printf("(%d)%f\n", getpid(), average);
             }
             else
             {
-                printf("(APP1.EXE)The average couldnt be calculated: no negative elements\n");
+                printf("(%d)The average couldnt be calculated: no negative elements\n", getpid());
             }
         }
     }
@@ -52,18 +54,18 @@ int input_array(int *array, size_t array_size)
 {
     int exit_code_input_array = EXIT_SUCCESS;
 
-    printf("(APP1.EXE)Enter the elements: ");
+    printf("(%d)Enter the elements: ", getpid());
     for (size_t i = 0; i < array_size && exit_code_input_array == EXIT_SUCCESS; i++)
     {
-        printf("(APP1.EXE)Input the %ld element: ", i);
+        printf("(%d)Input the %ld element: ", getpid(), i);
         if (scanf("%d", (array + i)) != NUMBER_OF_ARGUMENTS)
         {
-            printf("(APP1.EXE)Error: incorrect input array\n");
+            printf("(%d)Error: incorrect input array\n", getpid());
             exit_code_input_array = EXIT_FAILURE;
         }
         else
         {
-            printf("(APP1.EXE)Inputted %ld element: %d.\n", i, *(array + i));
+            printf("(%d)Inputted %ld element: %d.\n", getpid(), i, *(array + i));
         }
     }
     

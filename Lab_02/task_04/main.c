@@ -16,11 +16,10 @@ int main(void)
     pid_t childpid[2];
     pid_t curr_childpid;
     int fd[2];
-    char *message[2] = {"FFFFFFFFFFFFFFFFF", "SSS"};
+    char *message[2] = {"aaaaaaaaaaaaa", "sss"};
     int stat_val;
     if (pipe(fd) == -1)
     {
-        perror("Pipe error.\n");
         return ERROR_PIPE;
     }
     for (int i = 0; i < CHILD_N; i++)
@@ -28,14 +27,13 @@ int main(void)
         childpid[i] = fork();
         if (childpid[i] == - 1)
         {
-            perror("Error fork.\n");
             return ERROR_FORK;
         }
         else if (childpid[i] == 0)
         {
             close(fd[0]);
             write(fd[1], message[i], (strlen(message[i]) + 1));
-            printf("Message from child process (pid=%d) %s sent to parent.\n", getpid(), message[i]);
+            printf("Message from (pid=%d) %s sent.\n", getpid(), message[i]);
             return 0;
         }
         else
@@ -49,14 +47,14 @@ int main(void)
         curr_childpid = waitpid(childpid[i], &stat_val, 0);
         if (curr_childpid == - 1)
         {
-            printf("Error waitpid.\n");
+            return ERROR_WAITPID;
         }
         else
         {
-            printf("Child process status value: %d, child pid: %d.\n", stat_val, curr_childpid);
+            printf("process stat_val: %d, pid: %d.\n", stat_val, curr_childpid);
             check_stat_val(stat_val, curr_childpid);
             close(fd[1]);
-            read(fd[0], message[i], (strlen(message[i] + 1)));
+            read(fd[0], message[i], (strlen(message[i]) + 1));
             printf("%s\n", message[i]);
         }
     }
@@ -66,16 +64,14 @@ int main(void)
 void check_stat_val(int stat_val, pid_t childpid)
 {
     if (WIFEXITED(stat_val))
-        printf("Child process %d finished succesfuly. Return code: %d.\n", childpid, WEXITSTATUS(stat_val));
-    else
-        printf("Child process finished unsuccesfuly.\n");
+        printf("process %d - success, return code: %d.\n", childpid, WEXITSTATUS(stat_val));
     if (WIFSIGNALED(stat_val))
-        printf("Child process %d finished with non-intercepted signal: %d.\n", childpid ,WTERMSIG(stat_val));
+        printf("process %d - non-intercepted signal: %d.\n", childpid ,WTERMSIG(stat_val));
     else
-        printf("Child process %d finished with no signal.\n", childpid);
+        printf("process %d - no signal.\n", childpid);
 
     if (WIFSTOPPED(stat_val))
-        printf("Child process %d stopped: %d.\n", childpid, WSTOPSIG(stat_val));
+        printf("process %d - stopped: %d.\n", childpid, WSTOPSIG(stat_val));
     else
-        printf("Child process %d still working.\n", childpid);
+        printf("process %d - working.\n", childpid);
 }

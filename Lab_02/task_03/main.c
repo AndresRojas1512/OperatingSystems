@@ -14,7 +14,7 @@ int main(void)
     pid_t childpid[2];
     pid_t curr_childpid;
     int stat_val;
-    char *executables[2] = {"./lab_02_01_02/app1.exe", "./lab_02_02_02/app2.exe"};
+    char *executables[2] = {"./lab_02_01_02/app1.out", "./lab_02_02_02/app2.out"};
 
     for (int i = 0; i < CHILD_N; i++)
     {
@@ -27,7 +27,7 @@ int main(void)
         else if (childpid[i] == 0)
         {
             printf("#%d CHILD: pid=%d, ppid=%d, pgrp=%d.\n", i + 1, getpid(), getppid(), getpgrp());
-            if (execl(executables[i], NULL) == -1)
+            if (execl(executables[i], executables[i], NULL) == -1)
             {
                 printf("Exec error.\n");
                 return ERROR_EXEC;
@@ -46,16 +46,14 @@ int main(void)
 void check_stat_val(int stat_val, pid_t childpid)
 {
     if (WIFEXITED(stat_val))
-        printf("Child process %d finished succesfuly. Return code: %d.\n", childpid, WEXITSTATUS(stat_val));
-    else
-        printf("Child process finished unsuccesfuly.\n");
+        printf("process %d - success, return code: %d.\n", childpid, WEXITSTATUS(stat_val));
     if (WIFSIGNALED(stat_val))
-        printf("Child process %d finished with non-intercepted signal: %d.\n", childpid ,WTERMSIG(stat_val));
+        printf("process %d - non-intercepted signal: %d.\n", childpid ,WTERMSIG(stat_val));
     else
-        printf("Child process %d finished with no signal.\n", childpid);
+        printf("process %d - no signal.\n", childpid);
 
     if (WIFSTOPPED(stat_val))
-        printf("Child process %d stopped: %d.\n", childpid, WSTOPSIG(stat_val));
+        printf("process %d - stopped: %d.\n", childpid, WSTOPSIG(stat_val));
     else
-        printf("Child process %d still working.\n", childpid);
+        printf("process %d - working.\n", childpid);
 }
