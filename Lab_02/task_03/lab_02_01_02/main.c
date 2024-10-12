@@ -21,7 +21,7 @@ int main()
     printf("(%d)Enter the number of elements: ", getpid());
     if (scanf("%zu", &array_size) != NUMBER_OF_ARGUMENTS || array_size > MAX_SIZE || array_size < MIN_SIZE)
     {
-        printf("(%d)Error, invalid input for the size of the array\n", getpid());
+        printf("(%d)Error: invalid input for the size of the array\n", getpid());
         exit_code = EXIT_FAILURE;
     }
     else
