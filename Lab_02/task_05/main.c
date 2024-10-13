@@ -1,104 +1,85 @@
-#define _XOPEN_SOURCE 700   
+#include <signal.h>
 #include <stdio.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define CHILD_N 2
-#define ERROR_PIPE 10
-#define ERROR_FORK 11
-#define ERROR_WAITPID 12
-#define ERROR_SIGNAL 13
-#define ERROR_WAIT 14
-
-#define BUFFER_SIZE 100
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int flag = 0;
 
-void check_stat_val(int stat_val, pid_t pid);
-
-void catch_sig(int signal);
-
-int main(void)
+void sig_handler(int sig_numb)
 {
-    pid_t childpid[2];
-    // char buffer[BUFFER_SIZE];
-    // pid_t curr_childpid;
+    flag = 1;
+    printf("Handler for signal %d is set\n", sig_numb);
+}
+
+int main()
+{
     int fd[2];
-    char *message[2] = {"aaaaaaaaaaaaammmmmmmmmmm", "rrrr"};
-    int stat_val;
+    pid_t childpid_arr[2];
 
     if (pipe(fd) == -1)
     {
-        perror("error: can't pipe\n");
-        return ERROR_PIPE;
-    }
-    if (signal(SIGINT, catch_sig) == -1)
-    {
-        perror("error: can't signal\n");
-        return ERROR_SIGNAL;
+        perror("Can't pipe()\n");
+        exit(EXIT_FAILURE);
     }
 
+    if (signal(SIGINT, sig_handler) == SIG_ERR)
+    {
+        perror("Can't signal()\n");
+        exit(EXIT_FAILURE);
+    }
     sleep(2);
-
-    for (int i = 0; i < CHILD_N; i++)
-    {
-        childpid[i] = fork();
-        if (childpid[i] == -1)
+    for (int i = 0; i < 2; ++i)
+        if ((childpid_arr[i] = fork()) == -1)
         {
-            perror("error: can't fork\n");
-            return ERROR_FORK;
+            perror("error: can't fork");
+            exit(EXIT_FAILURE);
         }
-        else if (childpid[i] == 0)
+        else if (childpid_arr[i] == 0)
         {
+            char *message;
+            if (i == 0)
+                message = "aaammmmmmmmmmm\n";
+            else
+                message = "rrrr\n";
+
             if (flag)
             {
+                printf("%d %s", getpid(), message);
                 close(fd[0]);
-                write(fd[1], message[i], strlen(message[i]) + 1);
-                printf("%d %s\n", getpid(), message[i]);
-                return 0;
+                write(fd[1], message, strlen(message));
+                exit(EXIT_SUCCESS);
             }
             else
             {
                 printf("%d no signal\n", getpid());
-                return 0;
+                exit(EXIT_FAILURE);
             }
         }
-    }
-    close(fd[1]);
-    for (int i = 0; i < CHILD_N; i++)
+
+    for (size_t i = 0; i < 2; i++)
     {
-        if ((childpid[i] = wait(&stat_val)) == -1)
-        {
-            perror("error: can't wait\n");
-            return ERROR_WAIT;
-        }
-        if (flag)
-        {
-            read(fd[0], message[i], sizeof(message[i]));
-            printf("parent=%d message: %s\n", getpid(), message[i]);
-        }
+        pid_t w_pid;
+        int status;
+        w_pid = wait(&status);
+        if (WIFEXITED(status))
+			printf("%d exited with code %d\n", w_pid, WEXITSTATUS(status));
+		else if(WIFSIGNALED(status))
+			printf("%d recieved signal %d\n", w_pid, WTERMSIG(status));
+		else if (WIFSTOPPED(status))
+			printf("%d recieved signal %d\n", w_pid, WSTOPSIG(status));  
     }
-    close(fd[0]);
+    char elem;
+    close(fd[1]); 
+    printf("%d received:\n", getpid());
+    for (int i = 0; i < 2; i++)
+    {
+        do {
+            read(fd[0], &elem, 1);
+            printf("%s", &elem);
+        } while (elem != '\n');
+    }
     return 0;
-}
-
-void check_stat_val(int stat_val, pid_t pid)
-{
-    if (WIFEXITED(stat_val))
-        printf("process=%d exited, status=%d\n", pid, WEXITSTATUS(stat_val));
-    else if (WIFSIGNALED(stat_val))
-        printf("process=%d killed by signal: %d\n", pid ,WTERMSIG(stat_val));
-    else if (WIFSTOPPED(stat_val))
-        printf("process=%d, stopped by signal: %d\n", pid, WSTOPSIG(stat_val));
-    #ifdef WIFCONTINUED
-    else if (WIFCONTINUED(stat_val))
-        printf("process %d continued\n", pid);
-    #endif
-}
-
-void handler(int signal)
-{
-    flag = 1;
 }
